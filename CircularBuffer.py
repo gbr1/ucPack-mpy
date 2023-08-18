@@ -55,7 +55,14 @@ class CircularBuffer:
 if __name__ == "__main__":
 
     cb = CircularBuffer(3)
+    print(cb.isEmpty())
     cb.push(10)
     cb.push(20)
     cb.push(30)
+    print(cb.isFull())
     print(cb[1])
+    print(cb.top())
+    cb.pop()
+    print(cb.ptr())
+    print(cb.isFull())
+    print(cb.isEmpty())

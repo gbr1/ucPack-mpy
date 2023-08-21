@@ -185,3 +185,96 @@ if __name__ == "__main__":
     packeter.packetC1F(code_, num_)
 
     print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    data = bytearray([0x0b, 0xAA, 0x01, 0xFF, 0x1e, 0x32, 0x11, 0x00, 0xda])
+    c = ucPack.crc8(data)
+    print(hex(c))
+
+    packeter = ucPack(buffer_size=20, start_index=ord('S'), end_index=ord('E'))
+    packeter.buffer.push(ord('S'))
+    packeter.buffer.push(9)
+    for d in data:
+        packeter.buffer.push(d)
+    packeter.buffer.push(ord('E'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC2F())
+
+    code_, num1_, num2_ = packeter.unpacketC2F()
+
+    packeter.packetC2F(code_, num1_, num2_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    data = bytearray([0x0b,
+                      0xAA, 0x01, 0xFF, 0x1e,
+                      0x32, 0x11, 0x00, 0xda,
+                      0xcc, 0xa0, 0xf2, 0x01,
+                      0x00, 0x01, 0xa9, 0x12])
+    c = ucPack.crc8(data)
+    print(hex(c))
+
+    packeter = ucPack(buffer_size=30, start_index=ord('S'), end_index=ord('E'))
+    packeter.buffer.push(ord('S'))
+    packeter.buffer.push(17)
+    for d in data:
+        packeter.buffer.push(d)
+    packeter.buffer.push(ord('E'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC4F())
+
+    code_, num1_, num2_, num3_, num4_ = packeter.unpacketC4F()
+
+    packeter.packetC4F(code_, num1_, num2_, num3_, num4_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    data = bytearray([0x0b,
+                      0xAA, 0x01, 0xFF, 0x1e,
+                      0x32, 0x11, 0x00, 0xda,
+                      0xcc, 0xa0, 0xf2, 0x01,
+                      0x00, 0x01, 0xa9, 0x12,
+                      0xAb, 0xb1, 0x0F, 0xae,
+                      0x12, 0xd1, 0xd0, 0xaa,
+                      0xc1, 0xa4, 0xf6, 0x09,
+                      0x00, 0x01, 0xa9, 0x1a,
+                      ])
+    c = ucPack.crc8(data)
+    print(hex(c))
+
+    packeter = ucPack(buffer_size=40, start_index=ord('S'), end_index=ord('E'))
+    packeter.buffer.push(ord('S'))
+    packeter.buffer.push(33)
+    for d in data:
+        packeter.buffer.push(d)
+    packeter.buffer.push(ord('E'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC4F())
+
+    code_, num1_, num2_, num3_, num4_, num5_, num6_, num7_, num8_ = packeter.unpacketC8F()
+
+    packeter.packetC8F(code_, num1_, num2_, num3_, num4_, num5_, num6_, num7_, num8_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]

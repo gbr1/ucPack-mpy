@@ -50,7 +50,7 @@ class ucPack:
         self.msg[3:7] = bytearray(struct.pack("f", f1))
         self.msg[7:11] = bytearray(struct.pack("f", f2))
         self.msg[11] = self.end_index & 0xFF
-        self.msg[12] = self.crc8(self.msg[2:7])
+        self.msg[12] = self.crc8(self.msg[2:11])
         self.msg_size = 13
         return self.msg_size
 
@@ -69,7 +69,7 @@ class ucPack:
         self.msg[11:15] = bytearray(struct.pack("f", f3))
         self.msg[15:19] = bytearray(struct.pack("f", f4))
         self.msg[19] = self.end_index & 0xFF
-        self.msg[20] = self.crc8(self.msg[2:7])
+        self.msg[20] = self.crc8(self.msg[2:19])
         self.msg_size = 21
         return self.msg_size
 
@@ -95,7 +95,7 @@ class ucPack:
         self.msg[27:31] = bytearray(struct.pack("f", f7))
         self.msg[31:35] = bytearray(struct.pack("f", f8))
         self.msg[35] = self.end_index & 0xFF
-        self.msg[36] = self.crc8(self.msg[2:7])
+        self.msg[36] = self.crc8(self.msg[2:35])
         self.msg_size = 37
         return self.msg_size
 

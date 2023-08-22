@@ -91,7 +91,7 @@ class ucPack:
 
     def packetC2F(self, code: int, f1: float, f2: float) -> int:
         self.msg[0] = self.start_index & 0xFF
-        self.msg[1] = 5
+        self.msg[1] = 9
         self.msg[2] = code & 0xFF
         self.msg[3:7] = bytearray(struct.pack("f", f1))
         self.msg[7:11] = bytearray(struct.pack("f", f2))
@@ -108,7 +108,7 @@ class ucPack:
 
     def packetC4F(self, code: int, f1: float, f2: float, f3: float, f4: float) -> int:
         self.msg[0] = self.start_index & 0xFF
-        self.msg[1] = 5
+        self.msg[1] = 17
         self.msg[2] = code & 0xFF
         self.msg[3:7] = bytearray(struct.pack("f", f1))
         self.msg[7:11] = bytearray(struct.pack("f", f2))
@@ -130,7 +130,7 @@ class ucPack:
     def packetC8F(self, code: int, f1: float, f2: float, f3: float, f4: float,
                   f5: float, f6: float, f7: float, f8: float) -> int:
         self.msg[0] = self.start_index & 0xFF
-        self.msg[1] = 5
+        self.msg[1] = 33
         self.msg[2] = code & 0xFF
         self.msg[3:7] = bytearray(struct.pack("f", f1))
         self.msg[7:11] = bytearray(struct.pack("f", f2))

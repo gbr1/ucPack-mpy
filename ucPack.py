@@ -11,14 +11,16 @@ class ucPack:
         self.start_index = start_index
         self.end_index = end_index
 
-        self.payload = bytearray(0)
+        self.payload = bytearray(buffer_size)
 
         self.msg = bytearray(buffer_size)
         self.msg_size = 0
 
     def checkPayload(self) -> bool:
-
-        self.payload = bytearray(0)
+        """
+        Parses and checks the buffer to get the payload
+        :return:
+        """
 
         # check if buffer is empty
         if self.buffer.isEmpty():
@@ -45,7 +47,7 @@ class ucPack:
 
         # crc checking
         for i in range(0, payload_size):
-            self.payload.append(self.buffer[i + 2])
+            self.payload[i] = self.buffer[i + 2]
 
         if self.crc8(self.payload[0:payload_size]) != self.buffer[payload_size + 3]:
             self.buffer.pop()   # delete the index so it is possible to recheck
@@ -58,7 +60,13 @@ class ucPack:
         return True
 
     @staticmethod
-    def crc8(data):
+    def crc8(data: [int]) -> int:
+        """
+        Calculates the CRC8-MAXIM of the data array
+        :param data: the input data array
+        :return: the calculated crc
+        """
+
         crc = 0x00
 
         for extract in data:
@@ -72,9 +80,21 @@ class ucPack:
         return crc
 
     def payloadTop(self):
+        """
+        Returns the top element of the payload array
+        :return:
+        """
+
         return self.payload[0]
 
     def packetC1F(self, code: int, f: float) -> int:
+        """
+        Packets the float f with command code + start and end indexes
+        :param code:
+        :param f:
+        :return: returns the size of the resulting msg array
+        """
+
         self.msg[0] = self.start_index & 0xFF
         self.msg[1] = 5
         self.msg[2] = code & 0xFF
@@ -85,11 +105,24 @@ class ucPack:
         return self.msg_size
 
     def unpacketC1F(self) -> (int, float):
+        """
+        Unpackets the payload expecting a command code and one float
+        :return: code and float number
+        """
+
         code = self.payload[0]
         f = struct.unpack("f", self.payload[1:5])[0]
         return code, f
 
     def packetC2F(self, code: int, f1: float, f2: float) -> int:
+        """
+        Packets the floats f1, f2 with command code + start and end indexes
+        :param code:
+        :param f1:
+        :param f2:
+        :return: returns the size of the resulting msg array
+        """
+
         self.msg[0] = self.start_index & 0xFF
         self.msg[1] = 9
         self.msg[2] = code & 0xFF
@@ -101,12 +134,27 @@ class ucPack:
         return self.msg_size
 
     def unpacketC2F(self) -> (int, float, float):
+        """
+        Unpackets the payload expecting a command code and two floats
+        :return: code, f1, f2
+        """
+
         code = self.payload[0]
         f1 = struct.unpack("f", self.payload[1:5])[0]
         f2 = struct.unpack("f", self.payload[5:9])[0]
         return code, f1, f2
 
     def packetC4F(self, code: int, f1: float, f2: float, f3: float, f4: float) -> int:
+        """
+        Packets the floats f1, f2, f3, f4 with command code + start and end indexes
+        :param code:
+        :param f1:
+        :param f2:
+        :param f3:
+        :param f4:
+        :return: returns the size of the resulting msg array
+        """
+
         self.msg[0] = self.start_index & 0xFF
         self.msg[1] = 17
         self.msg[2] = code & 0xFF
@@ -120,6 +168,11 @@ class ucPack:
         return self.msg_size
 
     def unpacketC4F(self) -> (int, float, float, float, float):
+        """
+        Unpackets the payload expecting a command code and 4 floats
+        :return: code, f1, f2, f3, f4
+        """
+
         code = self.payload[0]
         f1 = struct.unpack("f", self.payload[1:5])[0]
         f2 = struct.unpack("f", self.payload[5:9])[0]
@@ -129,6 +182,20 @@ class ucPack:
 
     def packetC8F(self, code: int, f1: float, f2: float, f3: float, f4: float,
                   f5: float, f6: float, f7: float, f8: float) -> int:
+        """
+        Packets the floats f1, f2, f3, f4, f5, f6, f7, f8 with command code + start and end indexes
+        :param code:
+        :param f1:
+        :param f2:
+        :param f3:
+        :param f4:
+        :param f5:
+        :param f6:
+        :param f7:
+        :param f8:
+        :return: returns the size of the resulting msg array
+        """
+
         self.msg[0] = self.start_index & 0xFF
         self.msg[1] = 33
         self.msg[2] = code & 0xFF
@@ -146,6 +213,11 @@ class ucPack:
         return self.msg_size
 
     def unpacketC8F(self) -> (int, float, float, float, float, float, float, float, float):
+        """
+        Unpackets the payload expecting a command code and 8 floats
+        :return: code, f1, f2, f3, f4, f5, f6, f7, f8
+        """
+
         code = self.payload[0]
         f1 = struct.unpack("f", self.payload[1:5])[0]
         f2 = struct.unpack("f", self.payload[5:9])[0]
@@ -269,7 +341,7 @@ if __name__ == "__main__":
 
     print(packeter.payload)
 
-    print(packeter.unpacketC4F())
+    print(packeter.unpacketC8F())
 
     code_, num1_, num2_, num3_, num4_, num5_, num6_, num7_, num8_ = packeter.unpacketC8F()
 

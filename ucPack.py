@@ -360,6 +360,48 @@ class ucPack:
         f4 = struct.unpack("f", self.payload[13:17])[0]
         return code, f1, f2, f3, f4
 
+    def packetC6F(self, code: int, f1: float, f2: float, f3: float, f4: float, f5: float, f6: float) -> int:
+        """
+        Packets the floats f1, f2, f3, f4, f5, f6 with command code + start and end indexes
+        :param code:
+        :param f1:
+        :param f2:
+        :param f3:
+        :param f4:
+        :param f5:
+        :param f6:
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 25
+        self.msg[2] = code & 0xFF
+        self.msg[3:7] = bytearray(struct.pack("f", f1))
+        self.msg[7:11] = bytearray(struct.pack("f", f2))
+        self.msg[11:15] = bytearray(struct.pack("f", f3))
+        self.msg[15:19] = bytearray(struct.pack("f", f4))
+        self.msg[19:23] = bytearray(struct.pack("f", f5))
+        self.msg[23:27] = bytearray(struct.pack("f", f6))
+        self.msg[27] = self.end_index & 0xFF
+        self.msg[28] = self.crc8(self.msg[2:27])
+        self.msg_size = 29
+        return self.msg_size
+
+    def unpacketC6F(self) -> (int, float, float, float, float):
+        """
+        Unpackets the payload expecting a command code and 4 floats
+        :return: code, f1, f2, f3, f4
+        """
+
+        code = self.payload[0]
+        f1 = struct.unpack("f", self.payload[1:5])[0]
+        f2 = struct.unpack("f", self.payload[5:9])[0]
+        f3 = struct.unpack("f", self.payload[9:13])[0]
+        f4 = struct.unpack("f", self.payload[13:17])[0]
+        f5 = struct.unpack("f", self.payload[17:21])[0]
+        f6 = struct.unpack("f", self.payload[21:25])[0]
+        return code, f1, f2, f3, f4, f5, f6
+
     def packetC8F(self, code: int, f1: float, f2: float, f3: float, f4: float,
                   f5: float, f6: float, f7: float, f8: float) -> int:
         """
@@ -647,6 +689,39 @@ if __name__ == "__main__":
     code_, num1_, num2_, num3_, num4_ = packeter.unpacketC4F()
 
     packeter.packetC4F(code_, num1_, num2_, num3_, num4_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    data = bytearray([0x0b,
+                      0xAA, 0x01, 0xFF, 0x1e,
+                      0x32, 0x11, 0x00, 0xda,
+                      0xcc, 0xa0, 0xf2, 0x01,
+                      0x00, 0x01, 0xa9, 0x12,
+                      0xAb, 0xb1, 0x0F, 0xae,
+                      0x12, 0xd1, 0xd0, 0xaa,
+                      ])
+    c = ucPack.crc8(data)
+    print(hex(c))
+
+    packeter = ucPack(buffer_size=40, start_index=ord('S'), end_index=ord('E'))
+    packeter.buffer.push(ord('S'))
+    packeter.buffer.push(25)
+    for d in data:
+        packeter.buffer.push(d)
+    packeter.buffer.push(ord('E'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC6F())
+
+    code_, num1_, num2_, num3_, num4_, num5_, num6_ = packeter.unpacketC6F()
+
+    packeter.packetC6F(code_, num1_, num2_, num3_, num4_, num5_, num6_)
 
     print(packeter.msg)
 

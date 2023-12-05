@@ -87,6 +87,96 @@ class ucPack:
 
         return self.payload[0]
 
+    def packetC1B(self, code: int, b: int) -> int:
+        """
+        Packets the byte b with command code + start and end indexes
+        :param code:
+        :param b: the 'byte' to packet
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 2
+        self.msg[2] = code & 0xFF
+        self.msg[3] = b & 0xFF
+        self.msg[4] = self.end_index & 0xFF
+        self.msg[5] = self.crc8(self.msg[2:4])
+        self.msg_size = 6
+        return self.msg_size
+
+    def unpacketC1B(self) -> (int, int):
+        """
+        Unpackets the payload expecting a command code and one byte
+        :return: code and byte
+        """
+
+        code = self.payload[0]
+        b = self.payload[1]
+        return code, b
+
+    def packetC2B(self, code: int, b1: int, b2: int) -> int:
+        """
+        Packets bytes b1 and b2 with command code + start and end indexes
+        :param code:
+        :param b1: first 'byte' to packet
+        :param b2: second 'byte' to packet
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 3
+        self.msg[2] = code & 0xFF
+        self.msg[3] = b1 & 0xFF
+        self.msg[4] = b2 & 0xFF
+        self.msg[5] = self.end_index & 0xFF
+        self.msg[6] = self.crc8(self.msg[2:5])
+        self.msg_size = 7
+        return self.msg_size
+
+    def unpacketC2B(self) -> (int, int, int):
+        """
+        Unpackets the payload expecting a command code and two bytes
+        :return: code and bytes
+        """
+
+        code = self.payload[0]
+        b1 = self.payload[1]
+        b2 = self.payload[2]
+        return code, b1, b2
+
+    def packetC3B(self, code: int, b1: int, b2: int, b3: int) -> int:
+        """
+        Packets bytes b1, b2 and b3 with command code + start and end indexes
+        :param code:
+        :param b1: first 'byte' to packet
+        :param b2: second 'byte' to packet
+        :param b3: third 'byte' to packet
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 4
+        self.msg[2] = code & 0xFF
+        self.msg[3] = b1 & 0xFF
+        self.msg[4] = b2 & 0xFF
+        self.msg[5] = b3 & 0xFF
+        self.msg[6] = self.end_index & 0xFF
+        self.msg[7] = self.crc8(self.msg[2:6])
+        self.msg_size = 8
+        return self.msg_size
+
+    def unpacketC3B(self) -> (int, int, int, int):
+        """
+        Unpackets the payload expecting a command code and three bytes
+        :return: code and bytes
+        """
+
+        code = self.payload[0]
+        b1 = self.payload[1]
+        b2 = self.payload[2]
+        b3 = self.payload[3]
+        return code, b1, b2, b3
+
     def packetC1F(self, code: int, f: float) -> int:
         """
         Packets the float f with command code + start and end indexes
@@ -231,6 +321,81 @@ class ucPack:
 
 
 if __name__ == "__main__":
+    packeter = ucPack(buffer_size=10, start_index=ord('A'), end_index=ord('#'))
+    data = bytearray([ord('X'), 0x11])
+    c = ucPack.crc8(data)
+    packeter.buffer.push(ord('A'))
+    packeter.buffer.push(2)
+    packeter.buffer.push(ord('X'))
+    packeter.buffer.push(0x11)
+    packeter.buffer.push(ord('#'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC1B())
+
+    code_, byte_ = packeter.unpacketC1B()
+
+    packeter.packetC1B(code_, byte_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    packeter = ucPack(buffer_size=10, start_index=ord('A'), end_index=ord('#'))
+    data = bytearray([ord('X'), 0x11, 0x12])
+    c = ucPack.crc8(data)
+    packeter.buffer.push(ord('A'))
+    packeter.buffer.push(3)
+    packeter.buffer.push(ord('X'))
+    packeter.buffer.push(0x11)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(ord('#'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC2B())
+
+    code_, byte1_, byte2_ = packeter.unpacketC2B()
+
+    packeter.packetC2B(code_, byte1_, byte2_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    packeter = ucPack(buffer_size=10, start_index=ord('A'), end_index=ord('#'))
+    data = bytearray([ord('X'), 0x11, 0x12, 0x15])
+    c = ucPack.crc8(data)
+    packeter.buffer.push(ord('A'))
+    packeter.buffer.push(4)
+    packeter.buffer.push(ord('X'))
+    packeter.buffer.push(0x11)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(0x15)
+    packeter.buffer.push(ord('#'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC3B())
+
+    code_, byte1_, byte2_, byte3_ = packeter.unpacketC3B()
+
+    packeter.packetC3B(code_, byte1_, byte2_, byte3_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
     data = bytearray([0x0b, 0xAA, 0x01, 0xFF, 0x1e])
     c = ucPack.crc8(data)
     print(hex(c))

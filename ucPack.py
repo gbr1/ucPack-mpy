@@ -324,6 +324,39 @@ class ucPack:
         f2 = struct.unpack("f", self.payload[5:9])[0]
         return code, f1, f2
 
+    def packetC3F(self, code: int, f1: float, f2: float, f3: float) -> int:
+        """
+        Packets the floats f1, f2, f3 with command code + start and end indexes
+        :param code:
+        :param f1:
+        :param f2:
+        :param f3:
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 13
+        self.msg[2] = code & 0xFF
+        self.msg[3:7] = bytearray(struct.pack("f", f1))
+        self.msg[7:11] = bytearray(struct.pack("f", f2))
+        self.msg[11:15] = bytearray(struct.pack("f", f3))
+        self.msg[15] = self.end_index & 0xFF
+        self.msg[16] = self.crc8(self.msg[2:11])
+        self.msg_size = 17
+        return self.msg_size
+
+    def unpacketC3F(self) -> (int, float, float):
+        """
+        Unpackets the payload expecting a command code and two floats
+        :return: code, f1, f2, f3
+        """
+
+        code = self.payload[0]
+        f1 = struct.unpack("f", self.payload[1:5])[0]
+        f2 = struct.unpack("f", self.payload[5:9])[0]
+        f3 = struct.unpack("f", self.payload[9:13])[0]
+        return code, f1, f2, f3
+
     def packetC4F(self, code: int, f1: float, f2: float, f3: float, f4: float) -> int:
         """
         Packets the floats f1, f2, f3, f4 with command code + start and end indexes
@@ -663,6 +696,33 @@ if __name__ == "__main__":
     print(packeter.msg)
 
     assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    data = bytearray([0x0b, 0xAA, 0x01, 0xFF, 0x1e, 0x32, 0x11, 0x00, 0xda, 0xAB, 0x0b, 0xFb, 0x1b])
+    c = ucPack.crc8(data)
+    print(hex(c))
+
+    packeter = ucPack(buffer_size=20, start_index=ord('S'), end_index=ord('E'))
+    packeter.buffer.push(ord('S'))
+    packeter.buffer.push(13)
+    for d in data:
+        packeter.buffer.push(d)
+    packeter.buffer.push(ord('E'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC3F())
+
+    code_, num1_, num2_, num3_ = packeter.unpacketC3F()
+
+    packeter.packetC3F(code_, num1_, num2_, num3_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
 
     data = bytearray([0x0b,
                       0xAA, 0x01, 0xFF, 0x1e,

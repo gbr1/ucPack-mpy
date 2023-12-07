@@ -240,7 +240,7 @@ class ucPack:
         :param code:
         :param i1: the 1st int to packet
         :param i2: the 2nd int to packet
-        :param i3: the 2nd int to packet
+        :param i3: the 3rd int to packet
         :return: returns the size of the resulting msg array
         """
 
@@ -266,6 +266,51 @@ class ucPack:
         i2 = struct.unpack("h", self.payload[3:5])[0]
         i3 = struct.unpack("h", self.payload[5:7])[0]
         return code, i1, i2, i3
+
+    def packetC7I(self, code: int, i1: int, i2: int, i3: int, i4: int, i5: int, i6: int, i7: int) -> int:
+        """
+        Packets the ints with command code + start and end indexes
+        :param code:
+        :param i1: the 1st int to packet
+        :param i2: the 2nd int to packet
+        :param i3: the 3rd int to packet
+        :param i4: the 4th int to packet
+        :param i5: the 5th int to packet
+        :param i6: the 6th int to packet
+        :param i7: the 7th int to packet
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 15
+        self.msg[2] = code & 0xFF
+        self.msg[3:5] = bytearray(struct.pack("h", i1 & 0xFFFF))
+        self.msg[5:7] = bytearray(struct.pack("h", i2 & 0xFFFF))
+        self.msg[7:9] = bytearray(struct.pack("h", i3 & 0xFFFF))
+        self.msg[9:11] = bytearray(struct.pack("h", i4 & 0xFFFF))
+        self.msg[11:13] = bytearray(struct.pack("h", i5 & 0xFFFF))
+        self.msg[13:15] = bytearray(struct.pack("h", i6 & 0xFFFF))
+        self.msg[15:17] = bytearray(struct.pack("h", i7 & 0xFFFF))
+        self.msg[17] = self.end_index & 0xFF
+        self.msg[18] = self.crc8(self.msg[2:4])
+        self.msg_size = 19
+        return self.msg_size
+
+    def unpacketC7I(self) -> (int, int, int, int, int, int, int, int):
+        """
+        Unpackets the payload expecting a command code and one byte
+        :return: code and ints
+        """
+
+        code = self.payload[0]
+        i1 = struct.unpack("h", self.payload[1:3])[0]
+        i2 = struct.unpack("h", self.payload[3:5])[0]
+        i3 = struct.unpack("h", self.payload[5:7])[0]
+        i4 = struct.unpack("h", self.payload[7:9])[0]
+        i5 = struct.unpack("h", self.payload[9:11])[0]
+        i6 = struct.unpack("h", self.payload[11:13])[0]
+        i7 = struct.unpack("h", self.payload[13:15])[0]
+        return code, i1, i2, i3, i4, i5, i6, i7
 
     def packetC1F(self, code: int, f: float) -> int:
         """
@@ -637,6 +682,44 @@ if __name__ == "__main__":
     code_, int1_, int2_, int3_ = packeter.unpacketC3I()
 
     packeter.packetC3I(code_, int1_, int2_, int3_)
+
+    print(packeter.msg)
+
+    assert data == packeter.msg[2:2+packeter.msg_size-4]
+
+    packeter = ucPack(buffer_size=20, start_index=ord('A'), end_index=ord('#'))
+    data = bytearray([ord('I'), 0x11, 0x11, 0x12, 0x12, 0x13, 0x13, 0x1b, 0x1c,
+                      0x12, 0x12, 0x13, 0x13, 0x1b, 0x1c])
+    c = ucPack.crc8(data)
+    packeter.buffer.push(ord('A'))
+    packeter.buffer.push(15)
+    packeter.buffer.push(ord('I'))
+    packeter.buffer.push(0x11)
+    packeter.buffer.push(0x11)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(0x13)
+    packeter.buffer.push(0x13)
+    packeter.buffer.push(0x1b)
+    packeter.buffer.push(0x1c)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(0x12)
+    packeter.buffer.push(0x13)
+    packeter.buffer.push(0x13)
+    packeter.buffer.push(0x1b)
+    packeter.buffer.push(0x1c)
+    packeter.buffer.push(ord('#'))
+    packeter.buffer.push(c)
+
+    packeter.checkPayload()
+
+    print(packeter.payload)
+
+    print(packeter.unpacketC7I())
+
+    code_, int1_, int2_, int3_, int4_, int5_, int6_, int7_ = packeter.unpacketC7I()
+
+    packeter.packetC7I(code_, int1_, int2_, int3_, int4_, int5_, int6_, int7_)
 
     print(packeter.msg)
 

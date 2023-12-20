@@ -190,7 +190,7 @@ class ucPack:
         self.msg[2] = code & 0xFF
         self.msg[3:5] = bytearray(struct.pack("h", i & 0xFFFF))
         self.msg[5] = self.end_index & 0xFF
-        self.msg[6] = self.crc8(self.msg[2:4])
+        self.msg[6] = self.crc8(self.msg[2:5])
         self.msg_size = 7
         return self.msg_size
 
@@ -219,7 +219,7 @@ class ucPack:
         self.msg[3:5] = bytearray(struct.pack("h", i1 & 0xFFFF))
         self.msg[5:7] = bytearray(struct.pack("h", i2 & 0xFFFF))
         self.msg[7] = self.end_index & 0xFF
-        self.msg[8] = self.crc8(self.msg[2:4])
+        self.msg[8] = self.crc8(self.msg[2:7])
         self.msg_size = 9
         return self.msg_size
 
@@ -251,7 +251,7 @@ class ucPack:
         self.msg[5:7] = bytearray(struct.pack("h", i2 & 0xFFFF))
         self.msg[7:9] = bytearray(struct.pack("h", i3 & 0xFFFF))
         self.msg[9] = self.end_index & 0xFF
-        self.msg[10] = self.crc8(self.msg[2:4])
+        self.msg[10] = self.crc8(self.msg[2:9])
         self.msg_size = 11
         return self.msg_size
 
@@ -292,7 +292,7 @@ class ucPack:
         self.msg[13:15] = bytearray(struct.pack("h", i6 & 0xFFFF))
         self.msg[15:17] = bytearray(struct.pack("h", i7 & 0xFFFF))
         self.msg[17] = self.end_index & 0xFF
-        self.msg[18] = self.crc8(self.msg[2:4])
+        self.msg[18] = self.crc8(self.msg[2:17])
         self.msg_size = 19
         return self.msg_size
 
@@ -386,11 +386,11 @@ class ucPack:
         self.msg[7:11] = bytearray(struct.pack("f", f2))
         self.msg[11:15] = bytearray(struct.pack("f", f3))
         self.msg[15] = self.end_index & 0xFF
-        self.msg[16] = self.crc8(self.msg[2:11])
+        self.msg[16] = self.crc8(self.msg[2:15])
         self.msg_size = 17
         return self.msg_size
 
-    def unpacketC3F(self) -> (int, float, float):
+    def unpacketC3F(self) -> (int, float, float, float):
         """
         Unpackets the payload expecting a command code and two floats
         :return: code, f1, f2, f3
@@ -528,6 +528,42 @@ class ucPack:
         f7 = struct.unpack("f", self.payload[25:29])[0]
         f8 = struct.unpack("f", self.payload[29:33])[0]
         return code, f1, f2, f3, f4, f5, f6, f7, f8
+
+    def packetC1B3F(self, code: int, b: int, f1: float, f2: float, f3: float) -> int:
+        """
+        Packets the byte b and the floats f1, f2, f3 with command code + start and end indexes
+        :param code:
+        :param b:
+        :param f1:
+        :param f2:
+        :param f3:
+        :return: returns the size of the resulting msg array
+        """
+
+        self.msg[0] = self.start_index & 0xFF
+        self.msg[1] = 14
+        self.msg[2] = code & 0xFF
+        self.msg[3] = b & 0xFF
+        self.msg[4:8] = bytearray(struct.pack("f", f1))
+        self.msg[8:12] = bytearray(struct.pack("f", f2))
+        self.msg[12:16] = bytearray(struct.pack("f", f3))
+        self.msg[16] = self.end_index & 0xFF
+        self.msg[17] = self.crc8(self.msg[2:16])
+        self.msg_size = 18
+        return self.msg_size
+
+    def unpacketC1B3F(self) -> (int, int, float, float, float):
+        """
+        Unpackets the payload expecting a command code and two floats
+        :return: code, b, f1, f2, f3
+        """
+
+        code = self.payload[0]
+        b = self.payload[1]
+        f1 = struct.unpack("f", self.payload[2:6])[0]
+        f2 = struct.unpack("f", self.payload[6:10])[0]
+        f3 = struct.unpack("f", self.payload[10:14])[0]
+        return code, b, f1, f2, f3
 
 
 if __name__ == "__main__":

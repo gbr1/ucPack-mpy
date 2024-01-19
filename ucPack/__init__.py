@@ -1,6 +1,6 @@
 import struct
 
-from CircularBuffer import CircularBuffer
+from ucPack.CircularBuffer import CircularBuffer
 
 
 class ucPack:
